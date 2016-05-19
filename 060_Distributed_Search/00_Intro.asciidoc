@@ -8,6 +8,10 @@ basic _create-read-update-delete_ (CRUD) requests((("CRUD (create-read-update-de
 
 .Content Warning
 ****
+分布式搜索
+分布式搜索实践
+在开始之前，我们先来讨论下搜索是怎么进行的
+
 
 The information presented in this chapter is for your interest. You are not required to
 understand and remember all the detail in order to use Elasticsearch.
