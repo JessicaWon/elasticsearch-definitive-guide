@@ -7,11 +7,15 @@ the search locally and ((("priority queue")))builds a _priority queue_ of matchi
 .Priority Queue
 ****
 
+===搜索阶段
+在刚开始的_query phase_中，((("distributed search execution", "query phase")))((("query phase of distributed search")))搜索广播到索引中的每一个克隆分片中(初选或者副本分片)。每个分片执行本地搜索的同时((("priority queue")))建立一个匹配文档的_priority queue_。
+
 A _priority queue_ is just a sorted list that holds the _top-n_ matching
 documents. The size of the priority queue depends on the pagination
 parameters `from` and `size`.  For example, the following search request
 would require a priority queue big enough to hold 100 documents:
 
+_priority queue_仅仅是一个_top-n_所匹配文档的筛选列表。优先队列的尺寸取决于页码导航参数`from` 以及 `size`。举个例子，下面的搜索请求可以提供一个优先队列，队列的规模可以大到包含100个文档。
 [source,js]
 --------------------------------------------------
 GET /_search
@@ -30,6 +34,11 @@ image::images/elas_0901.png["Query phase of distributed search"]
 
 The query phase consists of the following three steps:
 
+搜索进程在<<img-distrib-search>>中有描述。
+[[img-distrib-search]]
+.分布式搜索进程
+image::images/elas_0901.png["Query phase of distributed search"]
+
 1. The client sends a `search` request to `Node 3`, which creates an empty
    priority queue of size `from + size`.
 
@@ -42,10 +51,15 @@ The query phase consists of the following three steps:
    values into its own priority queue to produce a globally sorted list of
    results.
 
+1、客户端发送一个`search`的请求到`Node 3`，它将创建一个尺寸为`from + size`新的优先队列。
+2、`Node 3`对索引中的每个主本或副本分片进行搜索请求。每个分片本地执行查询，并且添加结果到本地的一个筛选过大小为`from + size`的优先队列中。
+3、每个分片返回文档的ID和过滤所有从优先队列到附近节点的值，也就是`Node 3`，它合并了这些值到它的优先队列中来产生一个全局过滤列表。
+
 When a search request is sent to a node, that node becomes the coordinating
 node.((("nodes", "coordinating node for search requests"))) It is the job of this node to broadcast the search request to all
 involved shards, and to gather their responses into a globally sorted result
 set that it can return to the client.
+当一个搜索请求发送到节点，后者变成相邻节点。((("nodes", "coordinating node for search requests")))是这个节点的任务，即广播搜索结果到所有涉及的分片，以及收集他们的响应结果到全局过滤列表设置以便返回结果到客户端。
 
 The first step is to broadcast the request to a shard copy of every node in
 the index. Just like <<distrib-read,document `GET` requests>>, search requests
@@ -53,13 +67,13 @@ can be handled by a primary shard or by any of its replicas.((("shards", "handli
 replicas (when combined with more hardware) can increase search throughput.
 A coordinating node will round-robin through all shard copies on subsequent
 requests in order to spread the load.
-
+第一步是广播请求到索引的每一个节点副本中。有点像 <<distrib-read,document `GET` requests>>，搜索请求可以通过主本或者其副本处理。((("shards", "handling search requests")))是更多的副本(当和更多硬件联系起来的时候)可以增加搜索吞吐率。一个临近的节点将轮询所有分片副本请求以便分散负载。
 Each shard executes the query locally and builds a sorted priority queue of
 length `from + size`&#x2014;in other words, enough results to satisfy the global
 search request all by itself. It returns a lightweight list of results to the
 coordinating node, which contains just the doc IDs and any values required for
 sorting, such as the `_score`.
-
+每个分片执行本地搜索的同时建立筛选过的长度为`from + size`优先队列；换句话说，它自己有足够的结果来满足全局搜索请求。它返回一个临近节点的轻量级的结果列表，其仅包含文档ID和任何分类所需的值，比如`_score`。
 The coordinating node merges these shard-level results into its own sorted
 priority queue, which represents the globally sorted result set. Here the query
 phase ends.
