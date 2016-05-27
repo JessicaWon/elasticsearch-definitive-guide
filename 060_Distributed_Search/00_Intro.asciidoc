@@ -42,7 +42,7 @@ multiple shards must be combined into a single sorted list before the `search`
 API can return a ``page'' of results. For this reason, search is executed in a
 two-phase process called _query then fetch_.
 
-+CRUD的运行处理一个单个文档，其和`_index`, `_type`还有<<routing-value,`routing` values>>(默认为文档的`_id`)。这意味着我们准确的知道集群中的哪个分片拥有此文档。
++CRUD的运行处理一个单个文档，其和`_index`, `_type`还有<<routing-value,`routing` values>>(默认为文档的`_id`)有独特的连接。这意味着我们准确的知道集群中的哪个分片拥有此文档。
 
 搜索需要一个略复杂的运行模式因为我们不知道哪个文档能匹配到查询：它们可能存在于集群的任何一个分片上。一条查询请求必须查阅所有我们感兴趣的索引中分片的副本来看它们是否匹配所有的文档。
 
