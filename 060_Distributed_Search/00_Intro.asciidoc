@@ -8,10 +8,12 @@ basic _create-read-update-delete_ (CRUD) requests((("CRUD (create-read-update-de
 
 .Content Warning
 ****
-分布式搜索
-分布式搜索实践
-在开始之前，我们先来讨论下搜索是怎么进行的
++[[分布式搜索]]
+== 分布式搜索实践
 
+在开始实践之前，我们先来讨论下搜索在分布式环境下是怎么执行的。((("distributed search execution")))比我们在<<分布式文档>>中讨论基本的_create-read-update-delete_(CRUD)请求要复杂点。
+
+.文档告警
 
 The information presented in this chapter is for your interest. You are not required to
 understand and remember all the detail in order to use Elasticsearch.
@@ -20,6 +22,9 @@ Read this chapter to gain a taste for how things work, and to know where the
 information is in case you need to refer to it in the future, but don't be
 overwhelmed by the detail.
 
+
++这一章节所的信息是为你的兴趣而呈现的。为了使用Elasticsearch你不需要理解和记住所有的细节。
+阅读此章节的目的是理解运行原理以及信息来源以防你以后需要参考，需要注意的是不要被细节难住。
 ****
 
 A CRUD operation deals with a single document that has a unique combination of
@@ -36,3 +41,9 @@ But finding all matching documents is only half the story. Results from
 multiple shards must be combined into a single sorted list before the `search`
 API can return a ``page'' of results. For this reason, search is executed in a
 two-phase process called _query then fetch_.
+
++CRUD的运行处理一个单个文档，其和`_index`, `_type`还有<<routing-value,`routing` values>>(默认为文档的`_id`)。这意味着我们准确的知道集群中的哪个分片拥有此文档。
+
+搜索需要一个略复杂的运行模式因为我们不知道哪个文档能匹配到查询：它们可能存在于集群的任何一个分片上。一条查询请求必须查阅所有我们感兴趣的索引中分片的副本来看它们是否匹配所有的文档。
+
+但是发现所有的匹配文档仅仅是开始，多个分片的结果在通过`search`的接口可以返回一个``page''的结果前必须被关联到一个单独的排序表中。因为这个原因，搜索执行分_query和fetch_两阶段。
