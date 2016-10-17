@@ -33,6 +33,7 @@ multiple shards must be combined into a single sorted list before the `search`
 API can return a ``page'' of results. For this reason, search is executed in a
 two-phase process called _query then fetch_.
 
+
 [[distributed-search]]
 == 分布式检索执行
 
